@@ -18,7 +18,18 @@ type config = {
 let optimistic_run {roots; exclude; no_exe; no_ext; deps; revdeps} =
   let graph =
     Find.find_dune_files roots ~exclude
+    |> (fun _ -> [])
     |> Dune.load_files
+  in
+  ignore graph;
+  let graph =
+    let deps =
+      Describe.describe_workspace ()
+      |> Describe.Utils.read_entries
+    in
+    deps
+    |> Dep_graph.fixup
+    |> Filterable.of_dep_graph
   in
   let graph =
     if no_exe then Filter.no_exe graph
